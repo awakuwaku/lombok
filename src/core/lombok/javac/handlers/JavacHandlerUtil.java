@@ -2120,10 +2120,10 @@ public class JavacHandlerUtil {
 		try {
 			JCCompilationUnit cu = ((JCCompilationUnit) from.top().get());
 			String newJavadoc = copyMode.apply(cu, from);
-			if (newJavadoc != null) {
-				if (forceAddReturn) newJavadoc = addReturnsThisIfNeeded(newJavadoc);
-				Javac.setDocComment(cu, to, newJavadoc);
+			if (forceAddReturn) {
+				newJavadoc = addReturnsThisIfNeeded(newJavadoc);
 			}
+			Javac.setDocComment(cu, to, newJavadoc);
 		} catch (Exception ignore) {}
 	}
 	
@@ -2170,6 +2170,10 @@ public class JavacHandlerUtil {
 			JCExpression resType = mth.restype;
 			if (resType instanceof JCTypeApply) {
 				JCTypeApply ta = (JCTypeApply) resType;
+				if (ta.clazz instanceof JCFieldAccess) {
+					mth.restype = maker.TypeApply(maker.AnnotatedType(List.of(m), ta.clazz), ta.arguments);
+					return;
+				}
 				resType = ta.clazz;
 			}
 			
